@@ -1,101 +1,75 @@
-# name: Deploy Node.js App
-
-# on:
-#  push:
-#    branches:
-#      - main
-
-# jobs:
-#  build-and-run:
-#    runs-on: ubuntu-latest
-
-#    steps:
-#      # Step 1 - Checkout Code
-#      - name: Checkout Code
-#        uses: actions/checkout@v3
-
-#      # Step 2 - Setup Node.js
-#      - name: Setup Node.js
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: '20'
-
-#      # Step 3 - Install Dependencies
-#      - name: Install Dependencies
-#        run: npm install
-
-#      # Step 4 - Run Tests
-#      - name: Run Tests
-#        run: npm test
-
-#      # Step 5 - Start Application (Demo Deployment)
-#      - name: Run Application
-#        run: |
-#          node app.js &
-#          sleep 5
-#          curl http://localhost:3000
-
-
 name: Multi Environment Deployment
 
 on:
- push:
-   branches:
-     - dev
-     - staging
- workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - staging
+  workflow_dispatch:
 
 jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
- deploy:
-   runs-on: ubuntu-latest
+    steps:
+      # -----------------------------
+      # CHECKOUT
+      # -----------------------------
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-   steps:
-     - name: Checkout Code
-       uses: actions/checkout@v3
+      # -----------------------------
+      # SETUP NODE.JS
+      # -----------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-     - name: Setup Node.js
-       uses: actions/setup-node@v3
-       with:
-         node-version: '18'
+      # -----------------------------
+      # INSTALL DEPENDENCIES
+      # -----------------------------
+      - name: Install Dependencies
+        run: npm install
 
-     - name: Install Dependencies
-       run: npm install
+      # -----------------------------
+      # RUN TESTS
+      # -----------------------------
+      - name: Run Tests
+        run: npm test
 
-     - name: Run Tests
-       run: npm test
+      # -----------------------------
+      # DEV DEPLOYMENT
+      # -----------------------------
+      - name: Deploy to Dev
+        if: github.ref == 'refs/heads/dev'
+        environment: dev
+        env:
+          API_URL: ${{ secrets.DEV_API_URL }}
+        run: |
+          echo "Deploying to DEV environment"
+          echo "API URL: $API_URL"
 
-     # -----------------------------
-     # DEV DEPLOYMENT
-     # -----------------------------
-     - name: Deploy to Dev
-       if: github.ref == 'refs/heads/dev'
-       env:
-         API_URL: ${{ secrets.DEV_API_URL }}
-       run: |
-         echo "Deploying to DEV environment"
-         echo "API URL: $API_URL"
+      # -----------------------------
+      # STAGING DEPLOYMENT
+      # -----------------------------
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/staging'
+        environment: staging
+        env:
+          API_URL: ${{ secrets.STAGING_API_URL }}
+        run: |
+          echo "Deploying to STAGING environment"
+          echo "API URL: $API_URL"
 
-     # -----------------------------
-     # STAGING DEPLOYMENT
-     # -----------------------------
-     - name: Deploy to Staging
-       if: github.ref == 'refs/heads/staging'
-       env:
-         API_URL: ${{ secrets.STAGING_API_URL }}
-       run: |
-         echo "Deploying to STAGING environment"
-         echo "API URL: $API_URL"
-
-     # -----------------------------
-     # PRODUCTION DEPLOYMENT
-     # -----------------------------
-     - name: Deploy to Production
- if: github.event_name == 'workflow_dispatch'
- environment: production
- env:
-   API_URL: ${{ secrets.PROD_API_URL }}
- run: |
-   echo "Deploying to PRODUCTION"
-
-
+      # -----------------------------
+      # PRODUCTION DEPLOYMENT
+      # -----------------------------
+      - name: Deploy to Production
+        if: github.event_name == 'workflow_dispatch'
+        environment: production
+        env:
+          API_URL: ${{ secrets.PROD_API_URL }}
+        run: |
+          echo "Deploying to PRODUCTION"
+          echo "API URL: $API_URL"
