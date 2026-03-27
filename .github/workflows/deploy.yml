@@ -1,0 +1,37 @@
+name: Deploy Node.js App
+
+on:
+ push:
+   branches:
+     - main
+
+jobs:
+ build-and-run:
+   runs-on: ubuntu-latest
+
+   steps:
+     # Step 1 - Checkout Code
+     - name: Checkout Code
+       uses: actions/checkout@v3
+
+     # Step 2 - Setup Node.js
+     - name: Setup Node.js
+       uses: actions/setup-node@v3
+       with:
+         node-version: '18'
+
+     # Step 3 - Install Dependencies
+     - name: Install Dependencies
+       run: npm install
+
+     # Step 4 - Run Tests
+     - name: Run Tests
+       run: npm test
+
+     # Step 5 - Start Application (Demo Deployment)
+     - name: Run Application
+       run: |
+         node app.js &
+         sleep 5
+         curl http://localhost:3000
+
