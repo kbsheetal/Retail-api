@@ -5,7 +5,7 @@ app.use(express.json());
 
 // Sample API
 app.get("/", (req, res) => {
- res.send("Retail Order API is running...");
+ res.send("Retail Order API is running...staging");
 });
 
 // Real-world endpoint
