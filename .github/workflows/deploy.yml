@@ -8,66 +8,78 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-dev:
+    if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
-
+    environment: dev        # <-- environment at job level
     steps:
-      # -----------------------------
-      # CHECKOUT
-      # -----------------------------
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # -----------------------------
-      # SETUP NODE.JS
-      # -----------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      # -----------------------------
-      # INSTALL DEPENDENCIES
-      # -----------------------------
       - name: Install Dependencies
         run: npm install
 
-      # -----------------------------
-      # RUN TESTS
-      # -----------------------------
       - name: Run Tests
         run: npm test
 
-      # -----------------------------
-      # DEV DEPLOYMENT
-      # -----------------------------
       - name: Deploy to Dev
-        if: github.ref == 'refs/heads/dev'
-        environment: dev
         env:
           API_URL: ${{ secrets.DEV_API_URL }}
         run: |
           echo "Deploying to DEV environment"
           echo "API URL: $API_URL"
 
-      # -----------------------------
-      # STAGING DEPLOYMENT
-      # -----------------------------
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+
       - name: Deploy to Staging
-        if: github.ref == 'refs/heads/staging'
-        environment: staging
         env:
           API_URL: ${{ secrets.STAGING_API_URL }}
         run: |
           echo "Deploying to STAGING environment"
           echo "API URL: $API_URL"
 
-      # -----------------------------
-      # PRODUCTION DEPLOYMENT
-      # -----------------------------
+  deploy-production:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test
+
       - name: Deploy to Production
-        if: github.event_name == 'workflow_dispatch'
-        environment: production
         env:
           API_URL: ${{ secrets.PROD_API_URL }}
         run: |
